@@ -2,7 +2,11 @@ import utils.OsUtils
 import java.io.File
 
 fun main(args: Array<String>) {
-    val files = OsUtils.GetDirectoryFiles("/Users/Ciprian/Dropbox/Work/DeskTools/src/");
+    var path = "/Users/Ciprian/Dropbox/Work/DeskTools/src/"
+    if (args.count() > 0) {
+        path = args[0]
+    }
+    val files = OsUtils.GetDirectoryFiles(path);
     for (file in files) {
 
 
