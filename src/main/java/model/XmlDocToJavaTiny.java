@@ -1,5 +1,6 @@
 package model;
 
+import infrastructure.Utf8String;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -17,7 +18,9 @@ public class XmlDocToJavaTiny {
     }
 
     JavaTiny populateElement(Element element){
-        JavaTiny result = new JavaTiny(element.getTagName());
+        JavaTiny result = new JavaTiny(
+                new Utf8String( element.getTagName()
+        ));
         int attrLength = element.getAttributes().getLength();
         for (int i= 0; i<attrLength ;i++) {
             Node attrNode = element.getAttributes().item(i);

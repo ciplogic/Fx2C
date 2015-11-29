@@ -9,9 +9,6 @@ import java.util.Map;
 
 import static java.lang.System.out;
 
-/**
- * Created by Ciprian on 11/26/2015.
- */
 public class ControlFactory {
     private final List<String> _controlLines;
     private final JavaTiny _tinyNode;
@@ -57,11 +54,23 @@ public class ControlFactory {
             }
             String containerMethod = child.getName();
             Method method = resolver.resolveClassProperty(parentClass, containerMethod, false);
+            boolean isList = false;
+            Class<?> returnType = method.getReturnType();
             if (method == null) {
                 out.println("Method $containerMethod not found");
                 continue;
             }
-            String codeLine = parentControl+"."+method.getName()+"().addAll("+ OsUtils.join(", ", childControlNames)+")";
+            if(returnType.getName().equals("javafx.collections.ObservableList"))
+            {
+                isList = true;
+            }
+            String codeLine;
+            if(isList)
+            {
+                codeLine = parentControl+"."+method.getName()+"().addAll("+ OsUtils.join(", ", childControlNames)+")";
+            }else{
+                codeLine = parentControl+".set"+OsUtils.indent(containerMethod)+"("+ childControlNames.get(0)+")";
+            }
 
 
             addCodeLine(codeLine);
@@ -83,7 +92,7 @@ public class ControlFactory {
             id = idDirect;
         }
         if (!OsUtils.isNullOrEmpty(id)) {
-            addCodeLine("_controller.$id = $controlName");
+            addCodeLine("_controller."+id+" = "+controlName);
         }
     }
 
@@ -113,8 +122,8 @@ public class ControlFactory {
                 break;
             }
             case TypeCode.Object : {
-                if (parameterTypeName == "javafx.event.EventHandler") {
-                    parameterValue = "_controller::"+attributeValue.substring(1)+";";
+                if ("javafx.event.EventHandler".equals(parameterTypeName)) {
+                    parameterValue = "_controller::"+attributeValue.substring(1);
                 } else {
                     parameterValue = attributeValue;
                 }
