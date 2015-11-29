@@ -1,3 +1,4 @@
+import model.FxmlGenerator;
 import utils.OsUtils;
 
 import java.io.File;
@@ -5,6 +6,7 @@ import java.lang.System;
 import java.util.List;
 
 import static java.lang.System.out;
+import utils.*;
 
 public class MainApplication {
     public static void main(String[] args){
@@ -32,8 +34,8 @@ public class MainApplication {
         FxmlGenerator processor = new FxmlGenerator(file);
         File fileData = new File(file);
         String packageName = getPackageName(fileData.getParent());
-        String className = OsUtils.substringBeforeLast(fileData.getName(), ".");
-        processor.process("Fx" + OsUtils.indent(className), packageName);
+        String className = StringUtils.substringBeforeLast(fileData.getName(), ".");
+        processor.process("Fx" + StringUtils.indent(className), packageName);
     }
     String getPackageName(String path)  {
         String[] files = OsUtils.GetDirectoryFiles(path);
@@ -47,8 +49,8 @@ public class MainApplication {
                     continue;
                 }
                 String packageLine =
-                        OsUtils.removeSuffix(
-                                OsUtils.removePrefix(lineTrimmed, "package"),
+                        StringUtils.removeSuffix(
+                                StringUtils.removePrefix(lineTrimmed, "package"),
                                 ";");
                 return packageLine;
             }

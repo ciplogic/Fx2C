@@ -17,26 +17,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-
-
 public class OsUtils {
-    public static final String substringBeforeLast(String _this, String delimiter){
-        int index = _this.lastIndexOf(delimiter);
-        if (index == -1) return _this;
-        return _this.substring(0, index);
-    }
-    public static String removePrefix(String _this, String prefix) {
-        if (_this.startsWith(prefix)) {
-            return _this.substring(prefix.length());
-        }
-        return _this;
-    }
-    public static String removeSuffix(String _this, String suffix) {
-        if (_this.endsWith(suffix)) {
-            return _this.substring(0, _this.length() - suffix.length());
-        }
-        return _this;
-    }
+  
     public static String[] GetDirectoryFiles(String path) {
         ArrayList<String> resultList = new ArrayList<>();
         try {
@@ -74,27 +56,6 @@ public class OsUtils {
 
     public static boolean isNullOrEmpty(String str) {
         return str == null || str.length() == 0;
-    }
-
-    public static final String join(String separator, Collection<String> items) {
-        StringBuilder sb = new StringBuilder();
-        boolean isFirst = true;
-        for (String item : items) {
-            if (isFirst) {
-                isFirst = false;
-            } else {
-                sb.append(", ");
-            }
-            sb.append(item);
-        }
-
-        return sb.toString();
-    }
-
-    public static final String indent(String text) {
-        String startString = text.substring(0, 1).toUpperCase();
-        String endString = text.substring(1, text.length());
-        return startString + endString;
     }
 
     public static Document readXmlPlain(String fileName) {

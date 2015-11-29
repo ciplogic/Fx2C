@@ -1,3 +1,5 @@
+package model;
+
 import model.CodeGenerator;
 import model.JavaTiny;
 import model.XmlDocToJavaTiny;
@@ -21,7 +23,7 @@ public class FxmlGenerator {
         path = pathFile.getParent();
     }
 
-    void process(String className, String packageName) {
+    public void process(String className, String packageName) {
         XmlDocToJavaTiny xmlDataTranslator = new XmlDocToJavaTiny();
         JavaTiny tinyNode = xmlDataTranslator.buildNodeInfo(_doc, imports);
         ReflectionResolver resolver = new ReflectionResolver(imports);

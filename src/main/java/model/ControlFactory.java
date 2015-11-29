@@ -1,3 +1,5 @@
+package model;
+
 import model.JavaTiny;
 import utils.OsUtils;
 import utils.ReflectionResolver;
@@ -8,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import static java.lang.System.out;
+import utils.StringUtils;
 
 public class ControlFactory {
     private final List<String> _controlLines;
@@ -43,6 +46,30 @@ public class ControlFactory {
         return controlName;
 
     }
+    
+    String addCodeForSetter(List<String> childControlNames,ReflectionResolver resolver, 
+            Class<?> parentClass,String parentControl, String containerMethod){
+         Method method = resolver.resolveClassProperty(parentClass, containerMethod, false);
+            boolean isList = false;
+            Class<?> returnType = method.getReturnType();
+            if (method == null) {
+                out.println("Method $containerMethod not found");
+                return "";
+            }
+            if(returnType.getName().equals("javafx.collections.ObservableList"))
+            {
+                isList = true;
+            }
+            String codeLine;
+            if(isList)
+            {
+                codeLine = parentControl+"."+method.getName()+"().addAll("+ StringUtils.join(", ", childControlNames)+")";
+            }else{
+                codeLine = parentControl+".set"+StringUtils.indent(containerMethod)+"("+ childControlNames.get(0)+")";
+            }
+            return codeLine;
+
+    }
 
     private void buildChildrenControls(ReflectionResolver resolver, JavaTiny tinyNode, String parentControl, Class<?> parentClass) {
         for (JavaTiny child : tinyNode.getChildren()) {
@@ -53,27 +80,10 @@ public class ControlFactory {
                 childControlNames.add(childControlName);
             }
             String containerMethod = child.getName();
-            Method method = resolver.resolveClassProperty(parentClass, containerMethod, false);
-            boolean isList = false;
-            Class<?> returnType = method.getReturnType();
-            if (method == null) {
-                out.println("Method $containerMethod not found");
+            String childrenSetterCode = addCodeForSetter(childControlNames, resolver, parentClass, parentControl, containerMethod);
+            if(OsUtils.isNullOrEmpty(childrenSetterCode))
                 continue;
-            }
-            if(returnType.getName().equals("javafx.collections.ObservableList"))
-            {
-                isList = true;
-            }
-            String codeLine;
-            if(isList)
-            {
-                codeLine = parentControl+"."+method.getName()+"().addAll("+ OsUtils.join(", ", childControlNames)+")";
-            }else{
-                codeLine = parentControl+".set"+OsUtils.indent(containerMethod)+"("+ childControlNames.get(0)+")";
-            }
-
-
-            addCodeLine(codeLine);
+            addCodeLine(childrenSetterCode);
         }
 
 
@@ -108,21 +118,21 @@ public class ControlFactory {
                 continue;
             }
             Class<?> parameterType = resolvedMethod.getParameterTypes()[0];
-            String codeLine = buildFunctionCode(attr.getValue(), controlName, resolvedMethod.getName(), parameterType.getTypeName());
+            String codeLine = buildFunctionCode(attr.getValue(), controlName, resolvedMethod.getName(), parameterType);
             addCodeLine(codeLine);
         }
     }
 
-    private String buildFunctionCode(String attributeValue, String controlName, String methodName, String parameterTypeName) {
+    private String buildFunctionCode(String attributeValue, String controlName, String methodName, Class<?> parameterType) {
         String parameterValue;
-        int typeCodeParameter = TypeCode.TypeNameToTypeCode(parameterTypeName);
+        int typeCodeParameter = TypeCode.TypeNameToTypeCode(parameterType);
         switch (typeCodeParameter) {
             case TypeCode.String : {
                 parameterValue = "\"$attributeValue\"";
                 break;
             }
             case TypeCode.Object : {
-                if ("javafx.event.EventHandler".equals(parameterTypeName)) {
+                if ("javafx.event.EventHandler".equals(parameterType.getTypeName())) {
                     parameterValue = "_controller::"+attributeValue.substring(1);
                 } else {
                     parameterValue = attributeValue;
