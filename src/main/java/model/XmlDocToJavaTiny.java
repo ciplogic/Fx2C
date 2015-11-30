@@ -8,30 +8,32 @@ import org.w3c.dom.Node;
 import java.util.List;
 
 public class XmlDocToJavaTiny {
-    public JavaTiny buildNodeInfo(Document document, List<String> importsList){
+
+    public JavaTiny buildNodeInfo(Document document, List<String> importsList) {
         Node firstChild = document.getFirstChild();
         processImports(firstChild, importsList);
 
-        Element element= document.getDocumentElement();
+        Element element = document.getDocumentElement();
         JavaTiny tinyNode = populateElement(element);
         return tinyNode;
     }
 
-    JavaTiny populateElement(Element element){
+    JavaTiny populateElement(Element element) {
         JavaTiny result = new JavaTiny(
-                new Utf8String( element.getTagName()
-        ));
+                new Utf8String(element.getTagName()
+                ));
         int attrLength = element.getAttributes().getLength();
-        for (int i= 0; i<attrLength ;i++) {
+        for (int i = 0; i < attrLength; i++) {
             Node attrNode = element.getAttributes().item(i);
-            result.Attributes.put(attrNode.getNodeName(),  attrNode.getNodeValue());
+            result.Attributes.put(attrNode.getNodeName(), attrNode.getNodeValue());
         }
 
         int childrenLengh = element.getChildNodes().getLength();
-        for (int i = 0; i<childrenLengh; i++) {
+        for (int i = 0; i < childrenLengh; i++) {
             Node nodeUntyped = element.getChildNodes().item(i);
-            if (!(nodeUntyped instanceof Element))
-            continue;
+            if (!(nodeUntyped instanceof Element)) {
+                continue;
+            }
             result.Children.add(populateElement((Element) nodeUntyped));
         }
 

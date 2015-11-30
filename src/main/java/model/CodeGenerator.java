@@ -18,8 +18,8 @@ public class CodeGenerator {
     StringBuilder stringBuilder = new StringBuilder();
     void appendln(String text){
         stringBuilder.append(text);
-        stringBuilder.append('\n');
         stringBuilder.append('\r');
+        stringBuilder.append('\n');
     }
 
     void append(String text){
@@ -53,34 +53,34 @@ public class CodeGenerator {
         appendln(" {");
 
         if (!OsUtils.isNullOrEmpty(ControllerType)) {
-            append("        public ");
+            append("\tpublic ");
             append(ControllerType);
             appendln(" _controller;");
         }
 
-        append("        public ");
+        append("\tpublic ");
         append(ViewType);
         appendln(" _view;");
 
 
-        append("public ");
+        append("\tpublic ");
         append(className);
         appendln("() {");
 
 
         if (!OsUtils.isNullOrEmpty(ControllerType)) {
 
-            append("        _controller = new ");
+            append("\t\t_controller = new ");
             append(ControllerType);
             appendln("();");
         }
 
         for (String line : this.BuildControlsLines) {
-            append("        ");
+            append("\t\t");
             append(line);
             appendln(";");
         }
-        appendln("}");
+        appendln("\t}");
 
 
         appendln("}");
@@ -93,4 +93,5 @@ public class CodeGenerator {
         appendln("");
     }
 
+    
 }

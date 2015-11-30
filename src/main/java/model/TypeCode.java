@@ -8,8 +8,11 @@ public final class TypeCode {
     public final static int String = 3;
     public final static int Double = 4;
     public final static int Float = 5;
-    public final static int Object = 6;
+    public final static int Enum = 6;
+    public final static int Object = 7;
     public static int TypeNameToTypeCode(Class<?> type) {
+        if(type.isEnum())
+            return Enum;
         String typeName = type.getTypeName();
         switch (typeName) {
             case "byte" : return Byte;

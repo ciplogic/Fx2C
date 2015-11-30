@@ -2,7 +2,6 @@ import model.FxmlGenerator;
 import utils.OsUtils;
 
 import java.io.File;
-import java.lang.System;
 import java.util.List;
 
 import static java.lang.System.out;

@@ -17,6 +17,11 @@ public class StringUtils {
         if (index == -1) return _this;
         return _this.substring(0, index);
     }
+      public static final String substringAfterLast(String _this, String delimiter){
+        int index = _this.lastIndexOf(delimiter);
+        if (index == -1) return _this;
+        return _this.substring(index+1);
+    }
     public static String removePrefix(String _this, String prefix) {
         if (_this.startsWith(prefix)) {
             return _this.substring(prefix.length());
