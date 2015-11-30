@@ -11,6 +11,8 @@ import java.util.*;
 public class ReflectionResolver {
 
     public List<String> Imports = new ArrayList<>();
+    
+    public Map<String, Class<?>> FixedTypeNames = new HashMap<>();
     public Map<String, Class<?>> FixedTypes = new HashMap<>();
 
     public ReflectionResolver(List<String> imports) {
@@ -26,6 +28,8 @@ public class ReflectionResolver {
                     e.printStackTrace();
                 }
                 FixedTypes.put(imprt, clazz);
+                String fixedTypeName =StringUtils.substringAfterLast(imprt, ".");
+                FixedTypeNames.put(fixedTypeName, clazz);
             }
         }
 
@@ -35,7 +39,11 @@ public class ReflectionResolver {
         Constructor[] allConstructors = clazz.getDeclaredConstructors();
         for (Constructor ctor : allConstructors) {
             if (ctor.getParameterCount() == 0) {
-                return true;
+                String modifierString = Modifier.toString(ctor.getModifiers());
+                if(modifierString.contains("public"))
+                {
+                    return true;
+                }
             }
         }
         return false;
@@ -55,6 +63,11 @@ public class ReflectionResolver {
         if (FixedTypes.containsKey(typeName)) {
             return FixedTypes.get(typeName);
         }
+        if (FixedTypeNames.containsKey(typeName)) {
+            return FixedTypeNames.get(typeName);
+        }
+        
+        
         for (String imprt : Imports) {
             String baseName = imprt + "." + typeName;
             try {
