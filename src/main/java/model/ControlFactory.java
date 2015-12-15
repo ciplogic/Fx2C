@@ -65,6 +65,9 @@ public class ControlFactory {
             out.println("Method $containerMethod not found");
             return "";
         }
+        if(childControlNames.isEmpty()){
+            return "";
+        }
         if (returnType.getName().equals("javafx.collections.ObservableList")) {
             isList = true;
         }

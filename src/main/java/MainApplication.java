@@ -15,11 +15,12 @@ public class MainApplication {
     }
 
     void run(String[] args){
-        String  path = "/Users/Ciprian/Dropbox/Work/DeskTools/src/";
+        String  path = "/Users/Ciprian.khlud/Dropbox/Work/DeskTools/src/";
         if (args.length > 0) {
             path = args[0];
         }
-        String[]  files = OsUtils.GetDirectoryFiles(path);
+        String[]  files = OsUtils.GetDirectoryFiles(path, true,
+                file->file.getName().endsWith(".fxml"));
         for (String file : files) {
             if (file.endsWith(".fxml")) {
                 out.println("To compile: " + file);
@@ -37,10 +38,13 @@ public class MainApplication {
         processor.process("Fx" + StringUtils.indent(className), packageName);
     }
     String getPackageName(String path)  {
-        String[] files = OsUtils.GetDirectoryFiles(path);
+        String[] files = OsUtils.GetDirectoryFiles(path, false, file->
+                file.getName().endsWith(".java")
+                && (!file.getName().startsWith("Fx"))
+        );
+        
+        
         for (String file : files) {
-            if (!file.endsWith(".java"))
-                continue;
             List<String> lines = OsUtils.readAllLines(file);
             for (String line : lines) {
                 String lineTrimmed = line.trim();

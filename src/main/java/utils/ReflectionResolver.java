@@ -5,9 +5,7 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
-/**
- * Created by Ciprian on 11/26/2015.
- */
+
 public class ReflectionResolver {
 
     public List<String> Imports = new ArrayList<>();

@@ -14,16 +14,36 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.function.Predicate;
 
 public class OsUtils {
-  
-    public static String[] GetDirectoryFiles(String path) {
+
+    public static String[] GetDirectoryFiles(String path, boolean recursive, Predicate<File> isValidFile) {
+
         ArrayList<String> resultList = new ArrayList<>();
+
+        if (!recursive) {
+            File dir = new File(path);
+            File[] contents = dir.listFiles();
+            for (File itemFile : contents) {
+
+                if (!isValidFile.test(itemFile)) {
+                    continue;
+                }
+                resultList.add(itemFile.getPath());
+            }
+            String[] result = GetStringsOfArray(resultList);
+            return result;
+        }
+
         try {
             Files.walk(Paths.get(path)).forEach(filePath -> {
+
                 if (Files.isRegularFile(filePath)) {
+                    if (!isValidFile.test(filePath.toFile())) {
+                        return;
+                    }
                     String filePathName = filePath.toString();
                     resultList.add(filePathName);
                 }
@@ -81,7 +101,7 @@ public class OsUtils {
         return dom;
     }
 
-    public static void writeAllText( String pathName, String generateCode) {
+    public static void writeAllText(String pathName, String generateCode) {
         try (PrintWriter out = new PrintWriter(pathName)) {
             out.print(generateCode);
 
@@ -91,7 +111,7 @@ public class OsUtils {
 
     }
 
-    public static List<String> readAllLines( String file) {
+    public static List<String> readAllLines(String file) {
         try {
             List<String> lines = Files.readAllLines(Paths.get(file));
             return lines;
