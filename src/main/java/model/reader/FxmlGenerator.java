@@ -14,8 +14,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.lang.System.out;
-
 public class FxmlGenerator {
     List<String> imports = new ArrayList<>();
     String path;
@@ -41,8 +39,7 @@ public class FxmlGenerator {
         setupCodeGenerator(codeGenerator, tinyNode, resolver, className, packageName, configuration);
 
         String generatedCode = codeGenerator.generateCode();
-        out.println("Code: ");
-        out.println(generatedCode);
+
         String fullFilePath = path + "\\" + codeGenerator.className + ".java";
         OsUtils.writeAllText(fullFilePath, generatedCode);
     }

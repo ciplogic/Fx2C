@@ -3,6 +3,7 @@ import utils.OsUtils;
 import utils.StringUtils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 import static java.lang.System.out;
@@ -15,27 +16,70 @@ public class MainApplication {
     }
 
     void run(String[] args){
-        String path = "../DeskTools/src/";
+        String path = "../DeskTools/src/main/";
         if (args.length > 0) {
             path = args[0];
         }
+
+        boolean generatePreloader = true;
         String[]  files = OsUtils.GetDirectoryFiles(path, true,
                 file->file.getName().endsWith(".fxml"));
+        List<String> MappedTypesToCreate = new ArrayList<>();
         for (String file : files) {
             if (file.endsWith(".fxml")) {
                 out.println("To compile: " + file);
 
-                compile(file);
+                compile(file, MappedTypesToCreate);
             }
+        }
+        if (generatePreloader) {
+            computePreloader(path, MappedTypesToCreate);
         }
     }
 
-    void compile(String file) {
+    private void computePreloader(String path, List<String> mappedTypesToCreate) {
+        String fullFilePath = path + "Fx2CPreloader.java";
+        StringBuilder stringBuilder = new StringBuilder();
+
+        String packageName = getPackageName(path);
+        if (!OsUtils.isNullOrEmpty(packageName)) {
+            stringBuilder.append("package ");
+            stringBuilder.append(packageName);
+            stringBuilder.append(";");
+            stringBuilder.append("\n\r");
+        }
+        stringBuilder.append("public class Fx2CPreloader {");
+        stringBuilder.append("\n\r");
+        stringBuilder.append(" public static void preload() {");
+        stringBuilder.append("\n\r");
+        for (String clazz : mappedTypesToCreate) {
+            stringBuilder.append(" new ").append(clazz).append("();");
+            stringBuilder.append("\n\r");
+        }
+
+        stringBuilder.append("}");
+        stringBuilder.append("}");
+        stringBuilder.append("\n\r");
+
+        String generatedCode = stringBuilder.toString();
+        OsUtils.writeAllText(fullFilePath, generatedCode);
+
+
+    }
+
+    void compile(String file, List<String> mappedTypesToCreate) {
         FxmlGenerator processor = new FxmlGenerator(file);
         File fileData = new File(file);
         String packageName = getPackageName(fileData.getParent());
         String className = StringUtils.substringBeforeLast(fileData.getName(), ".");
-        processor.process("Fx" + StringUtils.indent(className), packageName);
+
+        String fxClassName = "Fx" + StringUtils.indent(className);
+        processor.process(fxClassName, packageName);
+        if (OsUtils.isNullOrEmpty(packageName)) {
+            mappedTypesToCreate.add(fxClassName);
+        } else {
+            mappedTypesToCreate.add(packageName + "." + fxClassName);
+        }
     }
     String getPackageName(String path)  {
         String[] files = OsUtils.GetDirectoryFiles(path, false, file->
