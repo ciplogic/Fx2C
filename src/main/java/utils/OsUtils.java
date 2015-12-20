@@ -67,7 +67,7 @@ public class OsUtils {
     public static String[] getFileLines(String fileName) {
         List<String> lines = new ArrayList<>();
         try {
-            lines.addAll(Files.readAllLines(Paths.get("/tmp/test.csv"), Charset.forName("UTF-8")));
+            lines.addAll(Files.readAllLines(Paths.get(fileName), Charset.forName("UTF-8")));
         } catch (IOException e) {
             e.printStackTrace();
         }

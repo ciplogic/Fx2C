@@ -16,8 +16,15 @@ import java.util.logging.Logger;
  */
 public class Utf8String {
 
-    byte[] _textData;
+    private final static Logger logger;
+    public static Utf8String Empty = new Utf8String("");
+
+    static {
+        logger = Logger.getLogger(Utf8String.class.getName());
+    }
+
     final int _hash;
+    byte[] _textData;
 
     public Utf8String(String text) {
         byte[] textData;
@@ -69,11 +76,6 @@ public class Utf8String {
     @Override
     public int hashCode() {
         return _hash;
-    }
-    private final static Logger logger;
-
-    static {
-        logger = Logger.getLogger(Utf8String.class.getName());
     }
 
 }

@@ -1,6 +1,5 @@
-package model;
+package infrastructure;
 
-import infrastructure.Utf8String;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -8,18 +7,14 @@ import java.util.Map;
 
 
 public class JavaTiny {
-    private Utf8String name;
-    public JavaTiny(Utf8String name){
-        this.name = name;
-    }    
-    
+    public Map<String, String> Attributes = new HashMap<>();
+    public List<JavaTiny> Children = new ArrayList<>();
+    private String name;
     public JavaTiny(String name){
-        this.name = new Utf8String(name);
+        this.name = name;
     }
-    
+
     public String getName(){ return  name.toString();}
-    Map<String, String> Attributes =  new HashMap<>();
-    List<JavaTiny> Children = new ArrayList<>();
 
     @Override
     public String toString(){

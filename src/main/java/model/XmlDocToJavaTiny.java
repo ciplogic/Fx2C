@@ -1,6 +1,7 @@
 package model;
 
-import infrastructure.Utf8String;
+import infrastructure.JavaTiny;
+import javafx.util.Pair;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -9,19 +10,35 @@ import java.util.List;
 
 public class XmlDocToJavaTiny {
 
-    public JavaTiny buildNodeInfo(Document document, List<String> importsList) {
+    public Pair<JavaTiny, GeneratorConfiguration> buildNodeInfo(Document document, List<String> importsList) {
         Node firstChild = document.getFirstChild();
         processImports(firstChild, importsList);
 
+        GeneratorConfiguration configuration = new GeneratorConfiguration();
+        processFlags(firstChild, configuration);
+
         Element element = document.getDocumentElement();
         JavaTiny tinyNode = populateElement(element);
-        return tinyNode;
+        Pair<JavaTiny, GeneratorConfiguration> result = new Pair<>(tinyNode, configuration);
+        return result;
+    }
+
+    private void processFlags(Node firstChild, GeneratorConfiguration configuration) {
+        Node startNode = firstChild;
+        while (startNode != null) {
+            if (startNode.getNodeName() == "#comment") {
+                String commentValue = startNode.getNodeValue().trim();
+                configuration.isKotlinController = true;
+            }
+
+            startNode = startNode.getNextSibling();
+        }
     }
 
     JavaTiny populateElement(Element element) {
         JavaTiny result = new JavaTiny(
-                new Utf8String(element.getTagName()
-                ));
+                element.getTagName()
+        );
         int attrLength = element.getAttributes().getLength();
         for (int i = 0; i < attrLength; i++) {
             Node attrNode = element.getAttributes().item(i);

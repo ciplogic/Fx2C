@@ -1,31 +1,33 @@
 package model;
 
-import model.JavaTiny;
+import infrastructure.JavaTiny;
+import infrastructure.TypeCode;
 import utils.OsUtils;
 import utils.ReflectionResolver;
+import utils.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static java.lang.System.out;
-import java.util.HashMap;
-import javafx.scene.image.ImageView;
-import utils.StringUtils;
 
 public class ControlFactory {
 
     private final List<String> _controlLines;
     private final JavaTiny _tinyNode;
     private final ReflectionResolver _resolver;
-
     int _controlIndex = 1;
+    private GeneratorConfiguration configuration;
 
-    public ControlFactory(List<String> buildControlsLines, JavaTiny tinyNode, ReflectionResolver resolver) {
+
+    public ControlFactory(List<String> buildControlsLines, JavaTiny tinyNode, ReflectionResolver resolver, GeneratorConfiguration configuration) {
         _controlLines = buildControlsLines;
         _tinyNode = tinyNode;
         _resolver = resolver;
+        this.configuration = configuration;
     }
 
     public void process() {
@@ -35,7 +37,7 @@ public class ControlFactory {
     }
 
     private String setupControl(JavaTiny tinyNode, ReflectionResolver resolver) {
-        
+
         String controlName = newControlName();
         Class controlClass = resolver.resolve(tinyNode.getName());
         if (resolver.hasDefaultConstructor(controlClass)) {
@@ -57,17 +59,17 @@ public class ControlFactory {
     }
 
     String addCodeForSetter(List<String> childControlNames, ReflectionResolver resolver,
-            Class<?> parentClass, String parentControl, String containerMethod) {
+                            Class<?> parentClass, String parentControl, String containerMethod) {
         Method method = resolver.resolveClassProperty(parentClass, containerMethod, false);
         boolean isList = false;
-        Class<?> returnType = method.getReturnType();
         if (method == null) {
             out.println("Method $containerMethod not found");
             return "";
         }
-        if(childControlNames.isEmpty()){
+        if (childControlNames.isEmpty()) {
             return "";
         }
+        Class<?> returnType = method.getReturnType();
         if (returnType.getName().equals("javafx.collections.ObservableList")) {
             isList = true;
         }
@@ -106,13 +108,16 @@ public class ControlFactory {
     }
 
     private void setupId(JavaTiny tinyNode, String controlName) {
-        String id = tinyNode.extractAttribute("fx:id");
-        String idDirect = tinyNode.extractAttribute("id");
-        if (OsUtils.isNullOrEmpty(id)) {
-            id = idDirect;
-        }
+        String id = tinyNode.extractAttribute("fx:id").toString();
+
+        boolean isKotlin = configuration.isKotlinController;
+
         if (!OsUtils.isNullOrEmpty(id)) {
-            addCodeLine("_controller." + id + " = " + controlName);
+            if (isKotlin) {
+                addCodeLine("_controller.set" + StringUtils.indent(id) + "(" + controlName + ");");
+            } else {
+                addCodeLine("_controller." + id + " = " + controlName);
+            }
         }
     }
 
@@ -138,11 +143,15 @@ public class ControlFactory {
         int typeCodeParameter = TypeCode.TypeNameToTypeCode(parameterType);
         switch (typeCodeParameter) {
             case TypeCode.String: {
-                parameterValue = "\""+attributeValue+"\"";
+                parameterValue = "\"" + attributeValue + "\"";
                 break;
             }
             case TypeCode.Enum: {
-                parameterValue = computeAttributeName(parameterType, attributeValue);
+                parameterValue = computeEnumAttributeName(parameterType, attributeValue);
+                break;
+            }
+            case TypeCode.Color: {
+                parameterValue = computeColorAttributeName(parameterType, attributeValue);
                 break;
             }
             case TypeCode.Object: {
@@ -167,7 +176,15 @@ public class ControlFactory {
         _controlLines.add(codeLine);
     }
 
-    private String computeAttributeName(Class<?> parameterType, String attributeValue) {
+    private String computeColorAttributeName(Class<?> parameterType, String attributeValue) {
+        if (attributeValue.startsWith("0x")) {
+            String hexColorValue = "Color.web(\"" + attributeValue + "\")";
+            return hexColorValue;
+        }
+        return computeEnumAttributeName(parameterType, attributeValue);
+    }
+
+    private String computeEnumAttributeName(Class<?> parameterType, String attributeValue) {
         Object[] constants = parameterType.getEnumConstants();
         Map<String, String> enumNames = new HashMap<>();
         for (Object constant : constants) {
@@ -191,8 +208,8 @@ public class ControlFactory {
             String value = entry.getValue();
             parameters.add(value);
         }
-        codeLine = codeLine+ StringUtils.join(", ", parameters);
-        codeLine =codeLine+ ")";
+        codeLine = codeLine + StringUtils.join(", ", parameters);
+        codeLine = codeLine + ")";
         addCodeLine(codeLine);
     }
 }

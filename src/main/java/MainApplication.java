@@ -1,11 +1,11 @@
-import model.FxmlGenerator;
+import model.reader.FxmlGenerator;
 import utils.OsUtils;
+import utils.StringUtils;
 
 import java.io.File;
 import java.util.List;
 
 import static java.lang.System.out;
-import utils.*;
 
 public class MainApplication {
     public static void main(String[] args){
@@ -15,7 +15,7 @@ public class MainApplication {
     }
 
     void run(String[] args){
-        String  path = "/Users/Ciprian.khlud/Dropbox/Work/DeskTools/src/";
+        String path = "../DeskTools/src/";
         if (args.length > 0) {
             path = args[0];
         }
@@ -39,11 +39,12 @@ public class MainApplication {
     }
     String getPackageName(String path)  {
         String[] files = OsUtils.GetDirectoryFiles(path, false, file->
-                file.getName().endsWith(".java")
+                (file.getName().endsWith(".java")
+                        || file.getName().endsWith(".kt"))
                 && (!file.getName().startsWith("Fx"))
         );
-        
-        
+
+
         for (String file : files) {
             List<String> lines = OsUtils.readAllLines(file);
             for (String line : lines) {

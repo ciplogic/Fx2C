@@ -1,4 +1,4 @@
-package model;
+package model.generator;
 
 import utils.OsUtils;
 
@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CodeGenerator {
+
     public List<String> StaticImports = new ArrayList();
     public List<String> StarImports = new ArrayList();
     public String packageName= "";
