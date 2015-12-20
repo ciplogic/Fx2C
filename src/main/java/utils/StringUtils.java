@@ -28,6 +28,12 @@ public class StringUtils {
         }
         return _this;
     }
+
+    public static String removeAfterLastSeparator(String _this, String regexSeparator) {
+        String[] tokens = _this.split(regexSeparator);
+        String result = tokens[tokens.length - 1];
+        return result;
+    }
     public static String removeSuffix(String _this, String suffix) {
         if (_this.endsWith(suffix)) {
             return _this.substring(0, _this.length() - suffix.length());

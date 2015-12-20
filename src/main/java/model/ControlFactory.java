@@ -191,10 +191,14 @@ public class ControlFactory {
             String constText = constant.toString();
             enumNames.put(constText.toLowerCase(), constText);
         }
-        String attrValueLower = attributeValue.toLowerCase();
-        String foundMappedName = enumNames.getOrDefault(attributeValue, "");
+        String attributeNameLowered = attributeValue.toLowerCase();
+        String foundMappedName = enumNames.getOrDefault(attributeNameLowered, "");
 
-        String result = parameterType.getSimpleName() + "." + foundMappedName;
+        String parameterTypeName = parameterType.toString();
+        String remainingName = StringUtils.removeAfterLastSeparator(parameterTypeName, "\\.");
+        String remainingNameCorrected = remainingName.replace('$', '.');
+
+        String result = remainingNameCorrected + "." + foundMappedName;
 
         return result;
 
