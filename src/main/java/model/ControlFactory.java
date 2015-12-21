@@ -40,14 +40,14 @@ public class ControlFactory {
 
         String controlName = newControlName();
         Class controlClass = resolver.resolve(tinyNode.getName());
+
         if (resolver.hasDefaultConstructor(controlClass)) {
             addCodeLine(tinyNode.getName() + " " + controlName + " = new " + tinyNode.getName() + "()");
+            setupId(tinyNode, controlName);
             setupAttributes(tinyNode, resolver, controlName, controlClass);
         } else {
             addCodeValues(tinyNode, controlClass, controlName, resolver);
         }
-
-        setupId(tinyNode, controlName);
 
         if (tinyNode.hasChildren()) {
 
@@ -112,12 +112,13 @@ public class ControlFactory {
 
         boolean isKotlin = configuration.isKotlinController;
 
-        if (!OsUtils.isNullOrEmpty(id)) {
-            if (isKotlin) {
-                addCodeLine("_controller.set" + StringUtils.indent(id) + "(" + controlName + ");");
-            } else {
-                addCodeLine("_controller." + id + " = " + controlName);
-            }
+        if (OsUtils.isNullOrEmpty(id)) {
+            return;
+        }
+        if (isKotlin) {
+            addCodeLine("_controller.set" + StringUtils.indent(id) + "(" + controlName + ");");
+        } else {
+            addCodeLine("_controller." + id + " = " + controlName);
         }
     }
 
