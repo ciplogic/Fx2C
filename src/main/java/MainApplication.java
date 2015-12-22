@@ -53,8 +53,7 @@ public class MainApplication {
         stringBuilder.append(" public static void preload() {");
         stringBuilder.append("\n\r");
         for (String clazz : mappedTypesToCreate) {
-            stringBuilder.append(" new ").append(clazz).append("();");
-            stringBuilder.append("\n\r");
+            stringBuilder.append(" new ").append(clazz).append("();").append("\n\r");
         }
 
         stringBuilder.append("}");
@@ -76,18 +75,17 @@ public class MainApplication {
         String fxClassName = "Fx" + StringUtils.indent(className);
         processor.process(fxClassName, packageName);
         if (OsUtils.isNullOrEmpty(packageName)) {
-            mappedTypesToCreate.add(fxClassName);
+            mappedTypesToCreate.add(fxClassName.trim());
         } else {
-            mappedTypesToCreate.add(packageName + "." + fxClassName);
+            mappedTypesToCreate.add(packageName + "." + fxClassName.trim());
         }
     }
     String getPackageName(String path)  {
         String[] files = OsUtils.GetDirectoryFiles(path, false, file->
                 (file.getName().endsWith(".java")
                         || file.getName().endsWith(".kt"))
-                && (!file.getName().startsWith("Fx"))
+                        && (!file.getName().startsWith("Fx"))
         );
-
 
         for (String file : files) {
             List<String> lines = OsUtils.readAllLines(file);
