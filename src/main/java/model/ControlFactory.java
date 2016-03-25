@@ -1,21 +1,44 @@
 package model;
 
-import infrastructure.JavaTiny;
-import infrastructure.TypeCode;
-import utils.OsUtils;
-import utils.ReflectionResolver;
-import utils.StringUtils;
+import static java.lang.System.out;
+import static utils.StringUtils.quote;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
-import static java.lang.System.out;
+import infrastructure.JavaTiny;
+import infrastructure.TypeCode;
+import javafx.geometry.Pos;
+import javafx.scene.layout.Priority;
+import utils.OsUtils;
+import utils.ReflectionResolver;
+import utils.StringUtils;
 
 public class ControlFactory {
 
+	public static final String FX_NODE_ID = "fx:id";
+
+	public static final String propPostfixInt = "index"; // complex node properties ending, like  -rowindex/-columnindex
+    
+    public static Map<String, Class<?>> specPropClass = new LinkedHashMap<>();
+    static {
+    	specPropClass.put( "alignment", Pos.class );
+    	specPropClass.put( "hgrow", Priority.class );
+    	specPropClass.put( "vgrow", Priority.class );
+    	specPropClass.put( "row", Integer.class );
+    	specPropClass.put( "column", Integer.class );
+    }
+	
+    public static Map<String, Class<?>> attr2Children = new HashMap<>();
+    static {
+    	attr2Children.put( "styleClass", String.class );
+    }
+    
     private final List<String> _controlLines;
     private final JavaTiny _tinyNode;
     private final ReflectionResolver _resolver;
@@ -38,7 +61,7 @@ public class ControlFactory {
 
     private String setupControl(JavaTiny tinyNode, ReflectionResolver resolver) {
 
-        String controlName = newControlName();
+        String controlName = newControlName( tinyNode );
         Class controlClass = resolver.resolve(tinyNode.getName());
 
         if (resolver.hasDefaultConstructor(controlClass)) {
@@ -101,14 +124,18 @@ public class ControlFactory {
 
     }
 
-    private String newControlName() {
+    private String newControlName( JavaTiny jnode ) {
+    	String name = jnode.Attributes.get(FX_NODE_ID);
+    	if( name != null )
+    		return name;
+    	
         String result = "ctrl_" + _controlIndex;
         _controlIndex++;
         return result;
     }
 
     private void setupId(JavaTiny tinyNode, String controlName) {
-        String id = tinyNode.extractAttribute("fx:id").toString();
+        String id = tinyNode.extractAttribute(FX_NODE_ID).toString();
 
         boolean isKotlin = configuration.isKotlinController;
 
@@ -127,21 +154,40 @@ public class ControlFactory {
         Map<String, String> attrs = controlNode.getAttributes();
         for (Map.Entry<String, String> attr : attrs.entrySet()) {
             String attrName = attr.getKey();
-            Method resolvedMethod = resolver.resolveClassProperty(controlClass, attrName, true);
-
-            if (resolvedMethod == null) {
-                out.println("cannot find method '" + attrName + "'");
-                continue;
+            String codeLine;
+            if( attr2Children.get( attrName ) != null ){
+            	List<String> childControlNames = new ArrayList<>();
+            	childControlNames.add( prepareFunctionParam(attr.getValue(), attr2Children.get( attrName )) );
+            	codeLine = addCodeForSetter( childControlNames, resolver, controlClass, controlName, attrName );
+            } else {
+	            Method resolvedMethod = resolver.resolveClassProperty(controlClass, attrName, true);
+	
+	            if (resolvedMethod == null) {
+	            	if( isNodeProperty(attrName) )
+	            		setupNodeProperty( attrName, attr.getValue(), controlName );
+	            	else 
+	            		out.println("cannot find method '" + attrName + "'");
+	                continue;
+	            }
+            
+	            Class<?> parameterType = resolvedMethod.getParameterTypes()[0];
+	            codeLine = buildFunctionCode(attr.getValue(), controlName, resolvedMethod.getName(), parameterType);
             }
-            Class<?> parameterType = resolvedMethod.getParameterTypes()[0];
-            String codeLine = buildFunctionCode(attr.getValue(), controlName, resolvedMethod.getName(), parameterType);
             addCodeLine(codeLine);
         }
     }
 
-    private String buildFunctionCode(String attributeValue, String controlName, String methodName, Class<?> parameterType) {
-        String parameterValue;
-        int typeCodeParameter = TypeCode.TypeNameToTypeCode(parameterType);
+
+	private String buildFunctionCode(String attributeValue, String controlName, String methodName, Class<?> parameterType) {
+        String parameterValue = prepareFunctionParam(attributeValue, parameterType);
+
+        String codeLine = controlName + "." + methodName + "(" + parameterValue + ")";
+        return codeLine;
+    }
+
+	private String prepareFunctionParam(String attributeValue, Class<?> parameterType) {
+		String parameterValue;
+		int typeCodeParameter = TypeCode.TypeNameToTypeCode(parameterType);
         switch (typeCodeParameter) {
             case TypeCode.String: {
                 parameterValue = "\"" + attributeValue + "\"";
@@ -163,15 +209,18 @@ public class ControlFactory {
                 }
                 break;
             }
+            case TypeCode.Double: {
+            	parameterValue = computeDoubleAttributeName(attributeValue);
+            	break;
+            }
             default: {
                 parameterValue = attributeValue;
                 break;
             }
         }
+		return parameterValue;
+	}
 
-        String codeLine = controlName + "." + methodName + "(" + parameterValue + ")";
-        return codeLine;
-    }
 
     private void addCodeLine(String codeLine) {
         _controlLines.add(codeLine);
@@ -204,6 +253,17 @@ public class ControlFactory {
         return result;
 
     }
+    
+	private String computeDoubleAttributeName(String attributeValue) {
+		String parameterValue;
+		if (attributeValue.equalsIgnoreCase("Infinity"))
+			parameterValue = "Double.POSITIVE_INFINITY";
+		else if (attributeValue.equalsIgnoreCase("-Infinity"))
+			parameterValue = "Double.NEGATIVE_INFINITY";
+		else 
+			parameterValue = attributeValue;
+		return parameterValue;
+	}
 
     private void addCodeValues(JavaTiny tinyNode, Class controlClass, String controlName, ReflectionResolver resolver) {
         String codeLine = tinyNode.getName() + " " + controlName + " = new " + tinyNode.getName() + "(";
@@ -216,5 +276,40 @@ public class ControlFactory {
         codeLine = codeLine + StringUtils.join(", ", parameters);
         codeLine = codeLine + ")";
         addCodeLine(codeLine);
+    }
+    
+	private boolean isNodeProperty(String attrName) {
+		return attrName.contains(".");
+	}
+
+    private void setupNodeProperty(String attrName, String value, String controlName) {
+    	
+    	Class<?> valueClass = String.class;
+    	attrName = prepareAttrName(attrName);
+    	Entry<String, Class<?>> specProp = findSpecProp(attrName);
+    	if (specProp != null)
+    		valueClass = specProp.getValue();
+    	
+    	value = prepareFunctionParam(value, valueClass);
+    	
+    	String codeLine = controlName + ".getProperties().put(" + quote(attrName) + ","+value +")";
+    	addCodeLine(codeLine);
+	}
+
+	private String prepareAttrName(String attrName) {
+		attrName = attrName.replace('.', '-').toLowerCase();
+    	if( attrName.endsWith(propPostfixInt) )
+    		attrName = attrName.substring( 0,attrName.length()-5 );
+		return attrName;
+	}
+
+    
+
+	private Entry<String,Class<?>> findSpecProp(String attrName){
+   	for (Entry<String,Class<?>> prop : specPropClass.entrySet()){
+    		if (attrName.endsWith(prop.getKey()))
+    			return prop;
+    	}
+    	return null;
     }
 }

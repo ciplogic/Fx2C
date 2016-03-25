@@ -22,6 +22,8 @@ public class FxmlGenerator {
         _doc = OsUtils.readXmlPlain(fileName);
         File pathFile = new File(fileName);
         path = pathFile.getParent();
+        if( path == null )
+        	path = ".";
     }
 
     public void process(String className, String packageName) {
@@ -40,7 +42,7 @@ public class FxmlGenerator {
 
         String generatedCode = codeGenerator.generateCode();
 
-        String fullFilePath = path + "\\" + codeGenerator.className + ".java";
+        String fullFilePath = path + File.separator + codeGenerator.className + ".java";
         OsUtils.writeAllText(fullFilePath, generatedCode);
     }
 

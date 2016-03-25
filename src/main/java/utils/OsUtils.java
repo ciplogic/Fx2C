@@ -22,19 +22,25 @@ public class OsUtils {
     public static String[] GetDirectoryFiles(String path, boolean recursive, Predicate<File> isValidFile) {
 
         ArrayList<String> resultList = new ArrayList<>();
-
+        if( path == null )
+        	path = ".";
+        
         if (!recursive) {
             File dir = new File(path);
-            File[] contents = dir.listFiles();
-            for (File itemFile : contents) {
-
-                if (!isValidFile.test(itemFile)) {
-                    continue;
-                }
-                resultList.add(itemFile.getPath());
+            if( dir.isDirectory() ){
+	            File[] contents = dir.listFiles();
+	            for (File itemFile : contents) {
+	
+	                if (!isValidFile.test(itemFile)) {
+	                    continue;
+	                }
+	                resultList.add(itemFile.getPath());
+	            }
+            } else {
+            	resultList.add( dir.getPath() );
             }
-            String[] result = GetStringsOfArray(resultList);
-            return result;
+	        String[] result = GetStringsOfArray(resultList);
+	        return result;
         }
 
         try {

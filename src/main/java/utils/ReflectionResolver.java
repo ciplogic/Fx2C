@@ -93,12 +93,13 @@ public class ReflectionResolver {
     }
 
     public Method resolveClassProperty(Class<?> clz, String name, boolean isSetter) {
-        Method mth;
-        if (isSetter) {
-            mth = getMethod(clz, "set" + StringUtils.indent(name), Optional.of(1));
-        } else {
-            mth = getMethod(clz, "get" + StringUtils.indent(name), Optional.of(0));
-        }
-        return mth;
+    	Method mth;
+    	if (isSetter) {
+    		mth = getMethod(clz, "set" + StringUtils.indent(name), Optional.of(1));
+    	} else {
+    		mth = getMethod(clz, "get" + StringUtils.indent(name), Optional.of(0));
+    	}
+
+    	return mth;
     }
 }

@@ -61,4 +61,8 @@ public class StringUtils {
         return startString + endString;
     }
 
+   
+    public static final String quote( String s ){
+    	return "\"" + s + "\"";
+    }
 }
