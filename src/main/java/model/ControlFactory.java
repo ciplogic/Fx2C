@@ -151,7 +151,7 @@ public class ControlFactory {
             default:
                 System.out.println("Never handled");
         }
-        addCodeLine(parentControl+".get"+StringUtils.indent(child.getName())+"().addAll("+arrayData+")");
+        addCodeLine(parentControl+".get"+StringUtils.indent(child.getName())+"().setAll("+arrayData+")");
     }
 
     private String newControlName( JavaTiny jnode ) {
