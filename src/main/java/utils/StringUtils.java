@@ -6,6 +6,8 @@
 package utils;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  *
@@ -39,6 +41,10 @@ public class StringUtils {
             return _this.substring(0, _this.length() - suffix.length());
         }
         return _this;
+    }
+    public static final String join(String separator, Stream<String> items) {
+
+        return join(separator, items.collect(Collectors.toList()));
     }
     public static final String join(String separator, Collection<String> items) {
         StringBuilder sb = new StringBuilder();

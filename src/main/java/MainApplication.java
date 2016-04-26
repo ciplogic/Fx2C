@@ -16,7 +16,7 @@ public class MainApplication {
     }
 
     void run(String[] args){
-        String path = "../DeskTools/src/main/";
+        String path = "../DeskTools/src/main/java/Java3D";
         if (args.length > 0) {
             path = args[0];
         }

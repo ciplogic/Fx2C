@@ -4,17 +4,17 @@ import static java.lang.System.out;
 import static utils.StringUtils.quote;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import infrastructure.JavaTiny;
 import infrastructure.TypeCode;
+import javafx.collections.ObservableFloatArray;
 import javafx.geometry.Pos;
 import javafx.scene.layout.Priority;
+import javafx.scene.shape.ObservableFaceArray;
+import javafx.scene.shape.TriangleMesh;
 import utils.OsUtils;
 import utils.ReflectionResolver;
 import utils.StringUtils;
@@ -93,7 +93,7 @@ public class ControlFactory {
             return "";
         }
         Class<?> returnType = method.getReturnType();
-        if (returnType.getName().equals("javafx.collections.ObservableList")) {
+        if (returnType.getName().equals(returnType.getName().startsWith("javafx.collections."))) {
             isList = true;
         }
         String codeLine;
@@ -108,6 +108,10 @@ public class ControlFactory {
 
     private void buildChildrenControls(ReflectionResolver resolver, JavaTiny tinyNode, String parentControl, Class<?> parentClass) {
         for (JavaTiny child : tinyNode.getChildren()) {
+            if(!OsUtils.isNullOrEmpty(child.getInnerText())){
+                handleSettingInnerText(resolver, parentClass, child,child.getInnerText(), tinyNode, parentControl);
+                continue;
+            }
             List<JavaTiny> controlChildNodes = child.getChildren();
             List<String> childControlNames = new ArrayList<>();
             for (JavaTiny childControlNode : controlChildNodes) {
@@ -122,6 +126,32 @@ public class ControlFactory {
             addCodeLine(childrenSetterCode);
         }
 
+    }
+
+    private void handleSettingInnerText(ReflectionResolver resolver, Class<?> parentClass, JavaTiny child, String innerText, JavaTiny tinyNode, String parentControl) {
+        boolean isList = false;
+        Method method = resolver.resolveClassProperty(parentClass, child.getName(), false);
+        Class<?> returnType = method.getReturnType();
+        Method methodAddAll = resolver.getMethod(returnType, "addAll", Optional.of(1));
+        Class<?> collectionType = methodAddAll.getParameterTypes()[0];
+        Method methodGetInCollection = resolver.getMethod(collectionType, "get", Optional.of(1));
+        String returnNameType = methodGetInCollection.getReturnType().getSimpleName();
+
+        String arrayData = "";
+        switch (returnNameType){
+            case "float":
+                arrayData = MathUtils.parseFloatToCombinedString(innerText);
+                break;
+            case "int":
+                arrayData = MathUtils.parseIntToCombinedString(innerText);
+                break;
+            case "double":
+                arrayData = MathUtils.parseDoubleToCombinedString(innerText);
+                break;
+            default:
+                System.out.println("Never handled");
+        }
+        addCodeLine(parentControl+".get"+StringUtils.indent(child.getName())+"().addAll("+arrayData+")");
     }
 
     private String newControlName( JavaTiny jnode ) {
@@ -149,7 +179,7 @@ public class ControlFactory {
         }
     }
 
-    void setupAttributes(JavaTiny controlNode, ReflectionResolver resolver, String controlName, Class<?> controlClass) {
+    private void setupAttributes(JavaTiny controlNode, ReflectionResolver resolver, String controlName, Class<?> controlClass) {
 
         Map<String, String> attrs = controlNode.getAttributes();
         for (Map.Entry<String, String> attr : attrs.entrySet()) {

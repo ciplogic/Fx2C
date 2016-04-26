@@ -1,10 +1,12 @@
 package model;
 
 import infrastructure.JavaTiny;
+import javafx.scene.shape.TriangleMesh;
 import javafx.util.Pair;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import utils.OsUtils;
 
 import java.util.List;
 
@@ -39,6 +41,13 @@ public class XmlDocToJavaTiny {
         JavaTiny result = new JavaTiny(
                 element.getTagName()
         );
+
+        if (element.hasChildNodes()) {
+            String text = element.getFirstChild().getTextContent();
+            if (!OsUtils.isNullOrEmpty(text.trim())) {
+                result.setInnerText(text);
+            }
+        }
         int attrLength = element.getAttributes().getLength();
         for (int i = 0; i < attrLength; i++) {
             Node attrNode = element.getAttributes().item(i);
