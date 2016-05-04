@@ -1,23 +1,19 @@
 package model;
 
-import static java.lang.System.out;
-import static utils.StringUtils.quote;
+import infrastructure.JavaTiny;
+import infrastructure.TypeCode;
+import javafx.geometry.Pos;
+import javafx.scene.layout.Priority;
+import utils.OsUtils;
+import utils.ReflectionResolver;
+import utils.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
-import infrastructure.JavaTiny;
-import infrastructure.TypeCode;
-import javafx.collections.ObservableFloatArray;
-import javafx.geometry.Pos;
-import javafx.scene.layout.Priority;
-import javafx.scene.shape.ObservableFaceArray;
-import javafx.scene.shape.TriangleMesh;
-import utils.OsUtils;
-import utils.ReflectionResolver;
-import utils.StringUtils;
+import static java.lang.System.out;
+import static utils.StringUtils.quote;
 
 public class ControlFactory {
 
@@ -26,6 +22,8 @@ public class ControlFactory {
 	public static final String propPostfixInt = "index"; // complex node properties ending, like  -rowindex/-columnindex
     
     public static Map<String, Class<?>> specPropClass = new LinkedHashMap<>();
+    public static Map<String, Class<?>> attr2Children = new HashMap<>();
+
     static {
     	specPropClass.put( "alignment", Pos.class );
     	specPropClass.put( "hgrow", Priority.class );
@@ -33,8 +31,7 @@ public class ControlFactory {
     	specPropClass.put( "row", Integer.class );
     	specPropClass.put( "column", Integer.class );
     }
-	
-    public static Map<String, Class<?>> attr2Children = new HashMap<>();
+
     static {
     	attr2Children.put( "styleClass", String.class );
     }
@@ -129,7 +126,6 @@ public class ControlFactory {
     }
 
     private void handleSettingInnerText(ReflectionResolver resolver, Class<?> parentClass, JavaTiny child, String innerText, JavaTiny tinyNode, String parentControl) {
-        boolean isList = false;
         Method method = resolver.resolveClassProperty(parentClass, child.getName(), false);
         Class<?> returnType = method.getReturnType();
         Method methodAddAll = resolver.getMethod(returnType, "addAll", Optional.of(1));
