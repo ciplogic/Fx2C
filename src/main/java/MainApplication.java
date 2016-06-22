@@ -1,3 +1,5 @@
+import javafx.application.Application;
+import javafx.stage.Stage;
 import model.reader.FxmlGenerator;
 import utils.OsUtils;
 import utils.StringUtils;
@@ -8,22 +10,28 @@ import java.util.List;
 
 import static java.lang.System.out;
 
-public class MainApplication {
-    public static void main(String[] args){
+public class MainApplication extends Application {
+    static String[] appArgs;
 
-        MainApplication application = new MainApplication();
-        application.run(args);
+    public static void main(String[] args) {
+
+        appArgs = args;
+
+        Application.launch(args);
+
     }
 
-    void run(String[] args){
+    void run() {
+        String[] args = appArgs;
         String path = "../DeskTools/src/main/java/Java3D";
         if (args.length > 0) {
             path = args[0];
         }
 
+
         boolean generatePreloader = true;
-        String[]  files = OsUtils.GetDirectoryFiles(path, true,
-                file->file.getName().endsWith(".fxml"));
+        String[] files = OsUtils.GetDirectoryFiles(path, true,
+                file -> file.getName().endsWith(".fxml"));
         List<String> MappedTypesToCreate = new ArrayList<>();
         for (String file : files) {
             if (file.endsWith(".fxml")) {
@@ -80,8 +88,9 @@ public class MainApplication {
             mappedTypesToCreate.add(packageName + "." + fxClassName.trim());
         }
     }
-    String getPackageName(String path)  {
-        String[] files = OsUtils.GetDirectoryFiles(path, false, file->
+
+    String getPackageName(String path) {
+        String[] files = OsUtils.GetDirectoryFiles(path, false, file ->
                 (file.getName().endsWith(".java")
                         || file.getName().endsWith(".kt"))
                         && (!file.getName().startsWith("Fx"))
@@ -102,5 +111,10 @@ public class MainApplication {
             }
         }
         return "";
+    }
+
+    @Override
+    public void start(Stage primaryStage) throws Exception {
+        run();
     }
 }
