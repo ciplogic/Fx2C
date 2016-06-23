@@ -11,12 +11,14 @@ import java.util.function.Consumer;
  * Created by Ciprian on 4/26/2016.
  */
 public class MathUtils {
+
     private static void callActionOnSplit(String innerText, String splitText, Consumer<String> action) {
 
         String[] stringOfMarks = innerText.split(splitText);
         for (String str : stringOfMarks) {
-            if (OsUtils.isNullOrEmpty(str.trim()))
+            if (OsUtils.isNullOrEmpty(str.trim())) {
                 continue;
+            }
             action.accept(str);
         }
     }
@@ -32,8 +34,8 @@ public class MathUtils {
 
     public static String parseFloatToCombinedString(String innerText) {
         List<Float> data = parseFloatArrayFromString(innerText);
-        String arrayData =
-                StringUtils.join(",", data.stream().map(aFloat -> Float.toString(aFloat) + "f"));
+        String arrayData
+                = StringUtils.join(",", data.stream().map(aFloat -> Float.toString(aFloat) + "f"));
         return arrayData;
     }
 
@@ -48,11 +50,10 @@ public class MathUtils {
 
     public static String parseIntToCombinedString(String innerText) {
         List<Integer> data = parseIntegerArrayFromString(innerText);
-        String arrayData =
-                StringUtils.join(",", data.stream().map(aFloat -> Integer.toString(aFloat)));
+        String arrayData
+                = StringUtils.join(",", data.stream().map(aFloat -> Integer.toString(aFloat)));
         return arrayData;
     }
-
 
     private static List<Double> parseDoubleArrayFromString(String innerText) {
         List<Double> result = new ArrayList<>();
@@ -65,8 +66,8 @@ public class MathUtils {
 
     public static String parseDoubleToCombinedString(String innerText) {
         List<Integer> data = parseIntegerArrayFromString(innerText);
-        String arrayData =
-                StringUtils.join(",", data.stream().map(aFloat -> Integer.toString(aFloat)));
+        String arrayData
+                = StringUtils.join(",", data.stream().map(aFloat -> Integer.toString(aFloat)));
         return arrayData;
     }
 }

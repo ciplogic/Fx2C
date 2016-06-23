@@ -15,15 +15,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class FxmlGenerator {
+
     List<String> imports = new ArrayList<>();
     String path;
     private Document _doc;
-    public FxmlGenerator(String fileName){
+
+    public FxmlGenerator(String fileName) {
         _doc = OsUtils.readXmlPlain(fileName);
         File pathFile = new File(fileName);
         path = pathFile.getParent();
-        if( path == null )
-        	path = ".";
+        if (path == null) {
+            path = ".";
+        }
     }
 
     public void process(String className, String packageName) {
@@ -47,7 +50,7 @@ public class FxmlGenerator {
     }
 
     private void setupCodeGenerator(CodeGenerator codeGenerator, JavaTiny tinyNode,
-                                    ReflectionResolver resolver, String clzName, String packageName, GeneratorConfiguration configuration) {
+            ReflectionResolver resolver, String clzName, String packageName, GeneratorConfiguration configuration) {
         codeGenerator.packageName = packageName;
         codeGenerator.className = clzName;
         codeGenerator.StarImports.addAll(resolver.Imports);

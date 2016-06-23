@@ -3,7 +3,10 @@ package utils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.text.MessageFormat;
 import java.util.*;
+
+import static java.text.MessageFormat.*;
 
 
 public class ReflectionResolver {
@@ -94,10 +97,11 @@ public class ReflectionResolver {
 
     public Method resolveClassProperty(Class<?> clz, String name, boolean isSetter) {
     	Method mth;
+        String indentedMethodName = StringUtils.indent(name);
     	if (isSetter) {
-    		mth = getMethod(clz, "set" + StringUtils.indent(name), Optional.of(1));
+            mth = getMethod(clz, format("set{0}", indentedMethodName), Optional.of(1));
     	} else {
-    		mth = getMethod(clz, "get" + StringUtils.indent(name), Optional.of(0));
+    		mth = getMethod(clz, format("get{0}", indentedMethodName), Optional.of(0));
     	}
 
     	return mth;

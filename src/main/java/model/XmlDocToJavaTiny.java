@@ -9,6 +9,7 @@ import org.w3c.dom.Node;
 import utils.OsUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 public class XmlDocToJavaTiny {
 
@@ -28,7 +29,7 @@ public class XmlDocToJavaTiny {
     private void processFlags(Node firstChild, GeneratorConfiguration configuration) {
         Node startNode = firstChild;
         while (startNode != null) {
-            if (startNode.getNodeName() == "#comment") {
+            if ("#comment".equals(startNode.getNodeName())) {
                 String commentValue = startNode.getNodeValue().trim();
                 configuration.isKotlinController = true;
             }
