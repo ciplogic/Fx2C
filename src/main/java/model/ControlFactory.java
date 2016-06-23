@@ -51,7 +51,6 @@ public class ControlFactory {
     }
 
     public void process() {
-
         String firstControl = setupControl(_tinyNode, _resolver);
         addCodeLine(format("_view = {0};", firstControl));
     }
@@ -85,6 +84,9 @@ public class ControlFactory {
 
     private void buildChildrenControls(ReflectionResolver resolver, JavaTiny tinyNode, String parentControl, Class<?> parentClass) {
         for (JavaTiny child : tinyNode.getChildren()) {
+            if (handleSpecialChild(child, parentControl)) {
+                continue;
+            }
             if (!OsUtils.isNullOrEmpty(child.getInnerText())) {
                 String codeLine = handleSettingInnerText(resolver, parentClass, child, child.getInnerText(), tinyNode, parentControl);
                 addCodeLine(codeLine);
@@ -105,6 +107,7 @@ public class ControlFactory {
         }
 
     }
+
     private String newControlName(JavaTiny jnode) {
         String name = jnode.Attributes.get(FX_NODE_ID);
         if (name != null) {
@@ -143,8 +146,9 @@ public class ControlFactory {
                 childControlNames.add(prepareFunctionParam(attr.getValue(), attr2Children.get(attrName)));
                 codeLine = addCodeForSetter(childControlNames, resolver, controlClass, controlName, attrName);
             } else {
-                if(specialHandleAttribute(attr, controlNode, controlName))
+                if (specialHandleAttribute(attr, controlNode, controlName)) {
                     continue;
+                }
                 Method resolvedMethod = resolver.resolveClassProperty(controlClass, attrName, true);
 
                 if (resolvedMethod == null) {
@@ -166,23 +170,51 @@ public class ControlFactory {
     private boolean specialHandleAttribute(Entry<String, String> attr, JavaTiny controlNode, String controlName) {
         String attrName = attr.getKey();
         String attrValue = attr.getValue();
-        switch (attrName){
-            case "xmlns":
+        switch (attrName) {
+            case "xmlns": {
                 return true;
+            }
             case "stylesheets": {
                 String codeLine = format("{0}.getStylesheets().add(\"{1}\")", controlName, attrValue.substring(1));
                 addCodeLine(codeLine);
                 return true;
             }
-            default:
-                out.println("Not handled attribute: "+attrName);
+            default: {
+                out.println("Not handled attribute: " + attrName);
                 return false;
+            }
+        }
+    }
+
+
+    private boolean handleSpecialChild(JavaTiny child, String parentControl) {
+        String childName = child.getName();
+        switch (childName) {
+            case "styleClass":
+                handleStyleClass(parentControl, child);
+                return true;
+            default: {
+                out.println("Not handled child: " + childName);
+                return false;
+            }
+        }
+    }
+
+    private void handleStyleClass(String parentControl, JavaTiny child) {
+        for (JavaTiny childStyleRow : child.Children) {
+            Map<String, String> attrs = childStyleRow.getAttributes();
+            for (Map.Entry<String, String> attr : attrs.entrySet()) {
+                String attrValue = attr.getValue();
+                String codeLine = format("{0}.getStyleClass().add(\"{1}\")", parentControl, attrValue);
+
+                addCodeLine(codeLine);
+            }
         }
     }
 
 
     private void addCodeLine(String codeLine) {
-        if(OsUtils.isNullOrEmpty(codeLine)) {
+        if (OsUtils.isNullOrEmpty(codeLine)) {
             return;
         }
         _controlLines.add(codeLine);
@@ -194,8 +226,8 @@ public class ControlFactory {
     }
 
     private void setupNodeProperty(String attrName, String value, String controlName) {
-
         Class<?> valueClass = String.class;
+
         attrName = prepareAttrName(attrName);
         Entry<String, Class<?>> specProp = findSpecProp(attrName);
         if (specProp != null) {
@@ -209,11 +241,12 @@ public class ControlFactory {
     }
 
     private String prepareAttrName(String attrName) {
-        attrName = attrName.replace('.', '-').toLowerCase();
-        if (attrName.endsWith(PROP_POSTFIX_INT)) {
-            attrName = attrName.substring(0, attrName.length() - 5);
+        String localAttrName = attrName;
+        localAttrName = localAttrName.replace('.', '-').toLowerCase();
+        if (localAttrName.endsWith(PROP_POSTFIX_INT)) {
+            localAttrName = localAttrName.substring(0, localAttrName.length() - 5);
         }
-        return attrName;
+        return localAttrName;
     }
 
     private Entry<String, Class<?>> findSpecProp(String attrName) {
