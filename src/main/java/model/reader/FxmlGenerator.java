@@ -1,6 +1,7 @@
 package model.reader;
 
 import infrastructure.JavaTiny;
+import javafx.fxml.Initializable;
 import javafx.util.Pair;
 import model.ControlFactory;
 import model.GeneratorConfiguration;
@@ -61,5 +62,17 @@ public class FxmlGenerator {
 
         ControlFactory builder = new ControlFactory(codeGenerator.BuildControlsLines, tinyNode, resolver, configuration);
         builder.process();
+        setupInitializableControllerCode(codeGenerator, resolver);
+    }
+
+    private void setupInitializableControllerCode(CodeGenerator codeGenerator, ReflectionResolver resolver) {
+        if (OsUtils.isNullOrEmpty(codeGenerator.ControllerType)) {
+            return;
+        }
+        Class<?> controllerClass = resolver.resolve(codeGenerator.ControllerType);
+        if (controllerClass == null || !Initializable.class.isAssignableFrom(controllerClass)) {
+            return;
+        }
+        codeGenerator.BuildControlsLines.add("_controller.initialize(null, null);");
     }
 }

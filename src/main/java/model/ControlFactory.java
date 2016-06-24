@@ -41,6 +41,8 @@ public class ControlFactory {
     private final List<String> _controlLines;
     private final JavaTiny _tinyNode;
     private final ReflectionResolver _resolver;
+    private Class<?> controllerClass;
+
     int _controlIndex = 1;
     private GeneratorConfiguration configuration;
 
@@ -54,6 +56,8 @@ public class ControlFactory {
     public void process() {
         String firstControl = setupControl(_tinyNode, _resolver);
         addCodeLine(format("_view = {0};", firstControl));
+
+
     }
 
     private String setupControl(JavaTiny tinyNode, ReflectionResolver resolver) {
@@ -221,7 +225,6 @@ public class ControlFactory {
                 handleStyleClass(parentControl, child);
                 return true;
             default: {
-                out.println("Not handled child: " + childName);
                 return false;
             }
         }
