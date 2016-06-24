@@ -1,7 +1,6 @@
 package model;
 
 import infrastructure.JavaTiny;
-import javafx.scene.shape.TriangleMesh;
 import javafx.util.Pair;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -9,7 +8,6 @@ import org.w3c.dom.Node;
 import utils.OsUtils;
 
 import java.util.List;
-import java.util.Objects;
 
 public class XmlDocToJavaTiny {
 
@@ -69,7 +67,7 @@ public class XmlDocToJavaTiny {
 
     private void processImports(Node firstChild, List<String> importsList) {
         Node startNode = firstChild;
-        while (startNode != null && startNode.getNodeName() == "import") {
+        while (startNode != null && "import".equals(startNode.getNodeName())) {
             importsList.add(startNode.getNodeValue());
             startNode = startNode.getNextSibling();
         }

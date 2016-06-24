@@ -8,6 +8,7 @@ import utils.ReflectionResolver;
 import utils.StringUtils;
 
 import java.lang.reflect.Method;
+import java.text.MessageFormat;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -114,7 +115,7 @@ public class ControlFactory {
             return name;
         }
 
-        String result = "ctrl_" + _controlIndex;
+        String result = MessageFormat.format("ctrl_{0}", _controlIndex);
         _controlIndex++;
         return result;
     }
@@ -146,7 +147,10 @@ public class ControlFactory {
                 childControlNames.add(prepareFunctionParam(attr.getValue(), attr2Children.get(attrName)));
                 codeLine = addCodeForSetter(childControlNames, resolver, controlClass, controlName, attrName);
             } else {
-                if (specialHandleAttribute(attr, controlNode, controlName)) {
+                if (specialHandleAttribute(attr, controlName)) {
+                    continue;
+                }
+                if (staticMethodHandleAttribute(attr, controlName)) {
                     continue;
                 }
                 Method resolvedMethod = resolver.resolveClassProperty(controlClass, attrName, true);
@@ -167,7 +171,31 @@ public class ControlFactory {
         }
     }
 
-    private boolean specialHandleAttribute(Entry<String, String> attr, JavaTiny controlNode, String controlName) {
+    private boolean staticMethodHandleAttribute(Entry<String, String> attr, String controlName) {
+        String attrName = attr.getKey();
+        String attrValue = attr.getValue();
+        if(!attrName.contains(".")){
+            return false;
+        }
+        String[] itemsExpression = attrName.split("\\.");
+
+        String className = itemsExpression[0];
+        String staticMethodName = itemsExpression[1];
+
+        Class<?> clsResolved = _resolver.resolve(className);
+        if(clsResolved==null){
+            out.println("staticMethodHandleAttribute cannot resolve"+className);
+            return false;
+        }
+
+        Method setterMethod = _resolver.resolveClassStaticSetter(clsResolved, staticMethodName);
+
+        String codeLine = format("{0}.{1}({2}, {3})", className, setterMethod.getName(),controlName, attrValue);
+        addCodeLine(codeLine);
+        return true;
+    }
+
+    private boolean specialHandleAttribute(Entry<String, String> attr, String controlName) {
         String attrName = attr.getKey();
         String attrValue = attr.getValue();
         switch (attrName) {
@@ -180,7 +208,6 @@ public class ControlFactory {
                 return true;
             }
             default: {
-                out.println("Not handled attribute: " + attrName);
                 return false;
             }
         }

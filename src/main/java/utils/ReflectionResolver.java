@@ -3,16 +3,15 @@ package utils;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.text.MessageFormat;
 import java.util.*;
 
-import static java.text.MessageFormat.*;
+import static java.text.MessageFormat.format;
 
 
 public class ReflectionResolver {
 
     public List<String> Imports = new ArrayList<>();
-    
+
     public Map<String, Class<?>> FixedTypeNames = new HashMap<>();
     public Map<String, Class<?>> FixedTypes = new HashMap<>();
 
@@ -29,7 +28,7 @@ public class ReflectionResolver {
                     e.printStackTrace();
                 }
                 FixedTypes.put(imprt, clazz);
-                String fixedTypeName =StringUtils.substringAfterLast(imprt, ".");
+                String fixedTypeName = StringUtils.substringAfterLast(imprt, ".");
                 FixedTypeNames.put(fixedTypeName, clazz);
             }
         }
@@ -41,14 +40,14 @@ public class ReflectionResolver {
         for (Constructor ctor : allConstructors) {
             if (ctor.getParameterCount() == 0) {
                 String modifierString = Modifier.toString(ctor.getModifiers());
-                if(modifierString.contains("public"))
-                {
+                if (modifierString.contains("public")) {
                     return true;
                 }
             }
         }
         return false;
     }
+
     public Constructor firstPublicConstructor(Class<?> clazz) {
         Constructor[] allConstructors = clazz.getDeclaredConstructors();
         for (Constructor ctor : allConstructors) {
@@ -67,8 +66,8 @@ public class ReflectionResolver {
         if (FixedTypeNames.containsKey(typeName)) {
             return FixedTypeNames.get(typeName);
         }
-        
-        
+
+
         for (String imprt : Imports) {
             String baseName = imprt + "." + typeName;
             try {
@@ -84,26 +83,38 @@ public class ReflectionResolver {
         Method[] methods = clz.getMethods();
         int paramenterCount = paramCount.isPresent() ? paramCount.get() : -1;
         for (Method mth : methods) {
+
+            String methodName = mth.getName();
+            if (!methodName.equals(name)) {
+                continue;
+            }
+
             int methodparameterCount = mth.getParameterCount();
             if ((paramenterCount != -1) && (methodparameterCount == paramenterCount)) {
-                String methodName = mth.getName();
-                if (methodName.equals(name)) {
-                    return mth;
-                }
+                return mth;
+
             }
         }
         return null;
     }
 
     public Method resolveClassProperty(Class<?> clz, String name, boolean isSetter) {
-    	Method mth;
+        Method mth;
         String indentedMethodName = StringUtils.indent(name);
-    	if (isSetter) {
+        if (isSetter) {
             mth = getMethod(clz, format("set{0}", indentedMethodName), Optional.of(1));
-    	} else {
-    		mth = getMethod(clz, format("get{0}", indentedMethodName), Optional.of(0));
-    	}
+        } else {
+            mth = getMethod(clz, format("get{0}", indentedMethodName), Optional.of(0));
+        }
 
-    	return mth;
+        return mth;
+    }
+
+
+    public Method resolveClassStaticSetter(Class<?> clz, String name) {
+
+        String indentedMethodName = StringUtils.indent(name);
+        Method mth = getMethod(clz, format("set{0}", indentedMethodName), Optional.of(2));
+        return mth;
     }
 }
