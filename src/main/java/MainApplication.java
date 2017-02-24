@@ -23,7 +23,7 @@ public class MainApplication extends Application {
 
     void run() {
         String[] args = appArgs;
-        String path = "../DeskTools/src/main/java/Java3D";
+        String path = "C:\\Oss\\DeskTools\\src\\main\\java\\FxRoot";
         if (args.length > 0) {
             path = args[0];
         }
@@ -43,6 +43,7 @@ public class MainApplication extends Application {
         if (generatePreloader) {
             computePreloader(path, MappedTypesToCreate);
         }
+        System.exit(0);
     }
 
     private void computePreloader(String path, List<String> mappedTypesToCreate) {
